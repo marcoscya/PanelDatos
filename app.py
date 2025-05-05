@@ -20,6 +20,7 @@ y visualizar sus características utilizando gráficos interactivos.
 
 # Barra lateral para selección de dataset
 st.sidebar.header("Configuración")
+
 dataset_name = st.sidebar.selectbox(
     "Selecciona un conjunto de datos",
     ("Iris", "Vino", "Diabetes")
@@ -28,19 +29,19 @@ dataset_name = st.sidebar.selectbox(
 # Función para cargar el dataset seleccionado
 def get_dataset(name):
     if name == "Iris":
-        data = load_iris()  # Usa la función importada de sklearn
+        data = load_iris()
         df = pd.DataFrame(data.data, columns=data.feature_names)
         df['target'] = data.target
         df['target_names'] = [data.target_names[i] for i in data.target]
         return df, "Clasificación de flores Iris"
     elif name == "Vino":
-        data = load_wine()  # Usa la función importada de sklearn
+        data = load_wine()
         df = pd.DataFrame(data.data, columns=data.feature_names)
         df['target'] = data.target
         df['target_names'] = [data.target_names[i] for i in data.target]
         return df, "Clasificación de tipos de vino"
     else:
-        data = load_diabetes()  # Usa la función importada de sklearn
+        data = load_diabetes()
         df = pd.DataFrame(data.data, columns=data.feature_names)
         df['target'] = data.target
         return df, "Predicción de diabetes"
@@ -71,10 +72,10 @@ with col1:
     x_axis = st.selectbox("Eje X", options=df.columns[:-2] if 'target_names' in df.columns else df.columns[:-1])
 
 with col2:
-    y_axis = st.selectbox(
-        "Eje Y", 
-        options=df.columns[:-2] if 'target_names' in df.columns else df.columns[:-1], 
-        index=1 if len(df.columns) > 1 else 0)
+    y_axis = st.selectbox("Eje Y", options=df.columns[:-2] if 'target_names' in df.columns else df.columns[:-1], index=1 if len(df.columns) > 1 else 0)
+
+# Configurar el tema de los gráficos
+plot_template = "plotly_white"
 
 # Gráfico de dispersión
 st.subheader("Gráfico de Dispersión")
@@ -82,12 +83,14 @@ if 'target_names' in df.columns:
     fig = px.scatter(df, x=x_axis, y=y_axis, color='target_names',
                     title=f"{x_axis} vs {y_axis}",
                     labels={'target_names': 'Categoría'},
-                    hover_data=['target'])
+                    hover_data=['target'],
+                    template=plot_template)
 else:
     fig = px.scatter(df, x=x_axis, y=y_axis, color='target',
                     title=f"{x_axis} vs {y_axis}",
                     labels={'target': 'Valor objetivo'},
-                    hover_data=['target'])
+                    hover_data=['target'],
+                    template=plot_template)
 
 st.plotly_chart(fig, use_container_width=True)
 
@@ -96,19 +99,32 @@ st.subheader("Histograma")
 hist_col = st.selectbox("Selecciona una columna para el histograma", options=df.columns[:-2] if 'target_names' in df.columns else df.columns[:-1])
 hist_fig = px.histogram(
     df, x=hist_col, 
-    color='target_names' if 'target_names' in df.columns else 'target', 
-    title=f"Distribución de {hist_col}")
+    color='target_names' if 'target_names' in df.columns else 'target',
+    title=f"Distribución de {hist_col}",
+    template=plot_template
+)
 st.plotly_chart(hist_fig, use_container_width=True)
 
 # Matriz de correlación
 st.subheader("Matriz de Correlación")
 corr = df.drop(columns=['target', 'target_names'] if 'target_names' in df.columns else ['target']).corr()
-corr_fig = px.imshow(corr, text_auto=True, aspect="auto", title="Matriz de Correlación")
+corr_fig = px.imshow(
+    corr, 
+    text_auto=True, 
+    aspect="auto", 
+    title="Matriz de Correlación",
+    template=plot_template
+)
 st.plotly_chart(corr_fig, use_container_width=True)
 
 # Pie chart de distribución de clases (solo para datasets de clasificación)
 if 'target_names' in df.columns:
     st.subheader("Distribución de Clases")
     class_counts = df['target_names'].value_counts()
-    pie_fig = px.pie(values=class_counts.values, names=class_counts.index, title="Distribución de Clases")
+    pie_fig = px.pie(
+        values=class_counts.values, 
+        names=class_counts.index, 
+        title="Distribución de Clases",
+        template=plot_template
+    )
     st.plotly_chart(pie_fig, use_container_width=True)
